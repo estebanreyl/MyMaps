@@ -1,14 +1,20 @@
 package com.erey.mymaps
 
+import android.app.Activity
 import android.content.DialogInterface
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import com.erey.mymaps.models.Place
+import com.erey.mymaps.models.UserMap
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -41,6 +47,29 @@ class CreateMapActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_create_map, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.miSave) {
+            Log.i(TAG, "Tapped on save!")
+            if (markers.isEmpty()) {
+                Toast.makeText(this, "There must be at least one marker on the map", Toast.LENGTH_LONG).show()
+                return true
+            }
+            val places = markers.map { marker -> Place(marker.title, marker.snippet, marker.position.latitude, marker.position.longitude) }
+            val userMap = UserMap(intent.getStringExtra(EXTRA_MAP_TITLE), places)
+            val data = Intent()
+            data.putExtra(EXTRA_USER_MAP, userMap)
+            setResult(Activity.RESULT_OK, data)
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -63,9 +92,8 @@ class CreateMapActivity : AppCompatActivity(), OnMapReadyCallback {
             showAlertDialog(latLng)
         }
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        val medellin = LatLng(6.2486, 75.5742)
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(medellin, 10f))
     }
 
     private fun showAlertDialog(latLng:LatLng){
@@ -75,7 +103,6 @@ class CreateMapActivity : AppCompatActivity(), OnMapReadyCallback {
                 .setTitle("Create a marker")
                 .setView(placeFormView)
                 .setNegativeButton("Cancel", null)
-                .setPositiveButton("Cancel", null)
                 .setPositiveButton("OK", null)
                 .show()
         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener{
