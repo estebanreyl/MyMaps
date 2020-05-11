@@ -1,5 +1,6 @@
 package com.erey.mymaps
 
+import android.app.Activity
 import android.content.Intent
 import android.nfc.Tag
 import androidx.appcompat.app.AppCompatActivity
@@ -12,7 +13,10 @@ import com.erey.mymaps.models.UserMap
 import kotlinx.android.synthetic.main.activity_main.*
 
 const val EXTRA_USER_MAP = "EXTRA_USER_MAP"
+const val EXTRA_MAP_TITLE = "EXTRA_MAP_TITLE"
+
 private const val TAG= "MainActivity"
+private const val REQUEST_CODE = 1234
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,6 +35,19 @@ class MainActivity : AppCompatActivity() {
 
         } )
 
+        fabCreateMap.setOnClickListener {
+            Log.i(TAG, "fab Clicked")
+            val intent = Intent(this@MainActivity,CreateMapActivity::class.java)
+            intent.putExtra(EXTRA_MAP_TITLE, "new map name")
+            startActivityForResult(intent, REQUEST_CODE)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun generateSampleData(): List<UserMap> {
