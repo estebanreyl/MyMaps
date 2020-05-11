@@ -1,8 +1,11 @@
 package com.erey.mymaps
 
+import android.Manifest
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -12,9 +15,12 @@ import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erey.mymaps.models.Place
 import com.erey.mymaps.models.UserMap
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -24,6 +30,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
+
 
 class CreateMapActivity : AppCompatActivity(), OnMapReadyCallback {
     private var TAG = "CreateMapActivity"
@@ -92,9 +99,16 @@ class CreateMapActivity : AppCompatActivity(), OnMapReadyCallback {
             showAlertDialog(latLng)
         }
 
-        val medellin = LatLng(6.2486, 75.5742)
+        var fusedLocationClient = LocationServices. getFusedLocationProviderClient(this)
+
+
+        val medellin = LatLng(6.2486, -75.5742)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(medellin, 10f))
     }
+
+    
+
+
 
     private fun showAlertDialog(latLng:LatLng){
         val placeFormView = LayoutInflater.from(this).inflate(R.layout.dialog_create_place, null)
