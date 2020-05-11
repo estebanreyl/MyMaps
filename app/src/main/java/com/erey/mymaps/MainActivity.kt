@@ -2,6 +2,7 @@ package com.erey.mymaps
 
 import android.app.Activity
 import android.content.AbstractThreadedSyncAdapter
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.nfc.Tag
@@ -19,10 +20,12 @@ import com.erey.mymaps.models.UserMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.*
 
 const val EXTRA_USER_MAP = "EXTRA_USER_MAP"
 const val EXTRA_MAP_TITLE = "EXTRA_MAP_TITLE"
 
+private const val  FILE_NAME = "UserMaps.data"
 private const val TAG= "MainActivity"
 private const val REQUEST_CODE = 1234
 
@@ -34,7 +37,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        userMaps = generateSampleData().toMutableList()
+        userMaps = deserializeUserMaps(this).toMutableList()
+        // userMaps = generateSampleData().toMutableList()
         rvMaps.layoutManager = LinearLayoutManager(this)
         mapAdapter = MapsAdapter(this, userMaps, object:MapsAdapter.OnClickLsitener{
             override fun onItemClick(position: Int) {
@@ -59,8 +63,30 @@ class MainActivity : AppCompatActivity() {
             Log.i(TAG, "onActivityResult with new map title  ${userMap.title}")
             userMaps.add(userMap)
             mapAdapter.notifyItemInserted(userMaps.size -1)
+            serializeUserMaps(this, userMaps)
         }
         super.onActivityResult(requestCode, resultCode, data)
+
+    }
+
+    private fun serializeUserMaps(context: Context, userMaps: List<UserMap>){
+        Log.i(TAG, "serializeUserMaps")
+        ObjectOutputStream(FileOutputStream(getDataFile(context))).use {it.writeObject(userMaps)}
+    }
+
+    private fun deserializeUserMaps(context: Context): List<UserMap>{
+        Log.i(TAG, "deserializeUserMaps")
+        val dataFile = getDataFile(context)
+        if (!dataFile.exists()) {
+            Log.i(TAG, "Getting file from directory ${context.filesDir}")
+            return emptyList()
+        }
+        ObjectInputStream(FileInputStream(dataFile)).use { return it.readObject() as List<UserMap>}
+    }
+
+    private fun getDataFile(context: Context) : File {
+        Log.i(TAG, "Getting file from directory ${context.filesDir}")
+        return File(context.filesDir, FILE_NAME)
     }
 
     private fun showAlertDialog(){
