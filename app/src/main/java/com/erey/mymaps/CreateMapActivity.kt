@@ -19,7 +19,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erey.mymaps.models.Place
 import com.erey.mymaps.models.UserMap
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -36,6 +35,7 @@ class CreateMapActivity : AppCompatActivity(), OnMapReadyCallback {
     private var TAG = "CreateMapActivity"
     private lateinit var mMap: GoogleMap
     private var markers: MutableList<Marker> = mutableListOf()
+    private var gotPerms: Boolean = false // I know this is crappy style but running out of time
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,15 +100,69 @@ class CreateMapActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         var fusedLocationClient = LocationServices. getFusedLocationProviderClient(this)
-
-
-        val medellin = LatLng(6.2486, -75.5742)
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(medellin, 10f))
+        if (checkPermission(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+            fusedLocationClient?.lastLocation?.
+            addOnSuccessListener(this,
+                {location : Location? ->
+                    if(location != null) {
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 5f))
+                    }
+                })
+        }
     }
 
-    
+
+    val REQUEST_CODE = 1 // Random request code we use to identify what this request is internally
+    // A lot if this has been modified from the guide on how to do this found at:
+    // https://en.proft.me/2019/01/3/how-get-location-latitude-longitude-android-kotlin/
+
+    private fun checkPermission(vararg perm:String) : Boolean {
+        val havePermissions = perm.toList().all {
+            ContextCompat.checkSelfPermission(this,it) ==
+                    PackageManager.PERMISSION_GRANTED
+        }
+        if (!havePermissions) {
+            if(perm.toList().any {
+                    ActivityCompat.
+                    shouldShowRequestPermissionRationale(this, it)}
+            ) {
+                val dialog = AlertDialog.Builder(this)
+                    .setTitle("Permission")
+                    .setMessage("Access to your location required")
+                    .setPositiveButton("OK", {id, v ->
+                        ActivityCompat.requestPermissions(
+                            this, perm, REQUEST_CODE
+                        )
+                    })
+                    .setNegativeButton("No", {id, v -> })
+                    .create()
+                dialog.show()
+            } else {
+                ActivityCompat.requestPermissions(this, perm, REQUEST_CODE)
+            }
+            return false
+        }
+        return true
+    }
 
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            REQUEST_CODE -> {
+                gotPerms = true;
+                var fusedLocationClient = LocationServices. getFusedLocationProviderClient(this)
+                fusedLocationClient?.lastLocation?.
+                addOnSuccessListener(this,
+                    {location : Location? ->
+                        if(location != null) {
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 5f))
+                        }
+                    })
+                }
+            }
+        }
 
     private fun showAlertDialog(latLng:LatLng){
         val placeFormView = LayoutInflater.from(this).inflate(R.layout.dialog_create_place, null)
