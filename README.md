@@ -21,7 +21,7 @@ The following **extensions** are implemented:
 ## Video Walkthrough
 
 Here's a walkthrough of implemented user stories:
-<img src="https://github.com/estebanreyl/MyMaps/blob/master/mymaps.gif"/>
+<img src="https://github.com/estebanreyl/MyMaps/blob/master/mymaps.gif"  title='Video Walkthrough' width='' alt='Video Walkthrough'/>
 
 ## Notes
 
